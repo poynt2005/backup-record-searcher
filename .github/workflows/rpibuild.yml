@@ -20,7 +20,7 @@ jobs:
                 DOCKERUSR: ${{ secrets.DOCKERUSR }}
               run: |
                 echo "Build Docker"
-                docker build -t ${DOCKERUSR}/${IMAGENAME}:rpi -f Dockerfile.rpi .
+                docker build -t ${DOCKERUSR}/backuprecordsearcher:rpi -f Dockerfile.rpi .
             - name: push to docker hub
               env:
                 DOCKERUSR: ${{ secrets.DOCKERUSR }}
@@ -29,7 +29,7 @@ jobs:
                 echo "Docker Hub login"
                 docker login --username ${DOCKERUSR} --password ${DOCKERPASS}
                 echo "Push image"
-                docker push ${DOCKERUSR}/${IMAGENAME}:rpi
+                docker push ${DOCKERUSR}/backuprecordsearcher:rpi
                 
               
         
