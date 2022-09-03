@@ -1,0 +1,6 @@
+FROM python:slim-buster 
+WORKDIR /app
+COPY server.py /app
+RUN pip install pip install Flask flask_cors gunicorn eventlet==0.30.2
+EXPOSE 8586
+CMD ["python", "-m", "gunicorn", "-b", "0.0.0.0:8586", "--log-level=debug","--timeout", "300","server:app"]
