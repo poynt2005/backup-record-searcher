@@ -1,4 +1,4 @@
-FROM python:slim-buster 
+FROM balenalib/raspberry-pi-debian-python
 WORKDIR /app
 COPY server.py /app
 RUN pip install pip install Flask flask_cors gunicorn eventlet==0.30.2
