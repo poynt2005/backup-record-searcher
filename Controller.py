@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_file, redirect
 from  urllib.parse import unquote, quote
 from flask_cors import CORS
+from datetime import datetime, timezone
 import os, json
 
 class Controller:
@@ -44,7 +45,6 @@ class Controller:
                     'name': content['name'],
                     'info': None if len(content['info']) == 0 else content['info'],
                     'picCount': content['picCount']
-
                 })
 
                 return_data['stored'] = return_data['stored'] + 1
@@ -55,8 +55,29 @@ class Controller:
         body = request.get_json()
         file_name = unquote(body['file_name'])
 
-        search_rst = model.search_target_commics(file_name)
+        search_rst_arr = model.search_target_commics(file_name)
 
-        return jsonify({ 'method': 'POST', 'path': 'search', 'message': search_rst }), 200
+        return_data_arr = []
+
+        for search_rst in search_rst_arr:
+            update_date = datetime.fromisoformat(search_rst[2])
+            info_json = None
+            try:
+                info_json = json.loads(search_rst[7])
+            except:
+                info_json = None
+            return_data = {
+                'comic_id': search_rst[0],
+                'drive_name': search_rst[1],
+                'update_utc_isostr': update_date.isoformat() + 'Z',
+                'size_in_bytes': search_rst[3],    
+                'is_folder': not not search_rst[4],
+                'comic_name': search_rst[5],
+                'pic_count': search_rst[6],
+                'info_json': info_json
+            }
+            return_data_arr.append(return_data)
+
+        return jsonify({ 'method': 'POST', 'path': 'search', 'message': return_data_arr }), 200
 
         
