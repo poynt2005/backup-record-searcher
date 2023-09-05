@@ -1,27 +1,29 @@
 name: x86build
 on:
-    push:
-        branches:
-            - master
+  push:
+    branches:
+      - master
 jobs:
-    auto_build:
-        name: Auto Build x86/Linux images
-        runs-on: ubuntu-latest
-        steps:
-            - name: checkout
-              uses: actions/checkout@master
-            - name: build docker
-              env:
-                DOCKERUSR: ${{ secrets.DOCKERUSR }}
-              run: |
-                echo "Build Docker"
-                docker build -t ${DOCKERUSR}/backuprecordsearcher:latest -f Dockerfile.x86 .
-            - name: push to docker hub
-              env:
-                DOCKERUSR: ${{ secrets.DOCKERUSR }}
-                DOCKERPASS: ${{ secrets.DOCKERPASS }}
-              run: |
-                echo "Docker Hub login"
-                docker login --username ${DOCKERUSR} --password ${DOCKERPASS}
-                echo "Push image"
-                docker push ${DOCKERUSR}/backuprecordsearcher:latest
+  auto_build:
+    name: Auto Build x86/Linux images
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+      - name: build docker
+        env:
+          DOCKERUSR: ${{ secrets.DOCKERUSR }}
+          DOCKER_REGISTRY_HOST: ${{ secrets.DOCKER_REGISTRY_HOST }}
+        run: |
+          echo "Build Docker"
+          docker build -t ${DOCKER_REGISTRY_HOST}/${DOCKERUSR}/backuprecordsearcher:latest .
+      - name: push to private registry hub
+        env:
+          DOCKER_REGISTRY_HOST: ${{ secrets.DOCKER_REGISTRY_HOST }}
+          DOCKERUSR: ${{ secrets.DOCKERUSR }}
+          DOCKERPASS: ${{ secrets.DOCKERPASS }}
+        run: |
+          echo "Private registry login"
+          docker login ${DOCKER_REGISTRY_HOST} --username ${DOCKERUSR} --password ${DOCKERPASS}
+          echo "Push image"
+          docker push ${DOCKER_REGISTRY_HOST}/${DOCKERUSR}/backuprecordsearcher:latest
