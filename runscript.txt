@@ -1,0 +1,7 @@
+docker run \
+    --rm \
+    -p <your_api_port>:8586 \
+    -v <path/to/server/logs>:/server_log \
+    -v <path/to/datenbank>:/datenbank \
+    -d \
+    backuprecordsearcher

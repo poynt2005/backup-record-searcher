@@ -16,7 +16,7 @@ jobs:
           DOCKER_REGISTRY_HOST: ${{ secrets.DOCKER_REGISTRY_HOST }}
         run: |
           echo "Build Docker"
-          docker build -t ${DOCKER_REGISTRY_HOST}/${DOCKERUSR}/backuprecordsearcher:latest -f Dockerfile.x86 .
+          docker build -t ${DOCKER_REGISTRY_HOST}/${DOCKERUSR}/backuprecordsearcher:latest .
       - name: push to private registry hub
         env:
           DOCKER_REGISTRY_HOST: ${{ secrets.DOCKER_REGISTRY_HOST }}

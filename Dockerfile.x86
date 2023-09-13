@@ -1,7 +1,0 @@
-FROM python:3.8-alpine
-WORKDIR /app
-COPY . /app
-RUN apk update && apk add build-base
-RUN pip install pip install Flask flask_cors gunicorn eventlet==0.30.2
-EXPOSE 8586
-CMD ["python", "-m", "gunicorn", "-b", "0.0.0.0:8586", "--log-level=debug","--timeout", "300","app:app"]

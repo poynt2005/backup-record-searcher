@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> Backup Record Searcher </title>
+
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Gideon+Roman&family=Noto+Sans+TC:wght@100&family=Roboto+Condensed:wght@300&display=swap');
+
+            * {
+                margin: 0;
+                padding: 0;
+            }
+
+            #root {
+                width: 100vw;
+                height: 100vh;
+                position: relative;
+                font-family: 'Roboto Condensed', 'Noto Sans TC', sans-serif;
+                color: white;
+            }
+
+            #bg {
+                width: 100vw;
+                height: 100vh;
+                overflow: hidden;
+                position: absolute;
+                top:0;
+                left:0;
+                right: 0;
+                bottom:0;
+                z-index: -999;
+                opacity: 0.6;
+            }
+
+            #bg video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            #main {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+
+            #main .title {
+                padding-top: 4rem;
+                text-align: center;
+                font-family: 'Gideon Roman', cursive;
+                margin-bottom: 2rem;
+            }
+
+            #main .title .la-title {
+                font-size: 4rem;
+                border-bottom-style: solid;
+                border-width: 1px;
+            }
+
+            #main .inner {
+                text-align: center;
+                /*margin-bottom: 1.5rem;*/
+            }
+
+            #main .inner .input-group {
+                display: inline-flex;
+                width: 710px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            #main .inner .input-group input[type=text] {
+                flex-grow: .95;
+                height: 2rem;
+                background-color: rgba(27, 5, 5, 0.425);
+                cursor: pointer;
+                border-style: none;
+                border-radius: 5px;
+                color: white;
+                font-size: 1.5rem;
+                padding-left: 3px;
+            }
+
+            #main .inner .result {
+                width: 710px;
+                background-color: rgba(27, 5, 5, 0.425);
+                height: 95%;
+                display: inline-flex;
+                overflow: auto;
+                flex-direction: column;
+                border-radius: 5px;
+            }
+
+            #main .inner .result .item {
+                text-align: left;
+                padding: 0 10px;
+                font-size: 1.5rem;
+                padding-top: .2rem;
+                padding-bottom: .2rem;
+                border-style: solid;
+                border-radius: 5px;
+                border-width: 1.5px;
+                margin-bottom: 5px;
+                border-color:rgb(24, 20, 53);
+            }
+
+            #main .inner .result .tag {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-left: 5px;
+                border-radius: 5px;
+            }
+            
+            #main .inner .result .drive-name {
+                background-color: rgb(7, 48, 85);
+            }
+
+            #main .inner .result .ongoing {
+                background-color: rgb(7, 93, 44);
+            }
+
+            #main .inner .result .item .name {
+                margin-right: 1.5rem;
+            }
+
+            #main .inner .result .item .time {
+                color: rgba(170, 248, 170, 0.829);
+                border-style: solid;
+                border-radius: 5px;
+                border-width: 1px;
+                font-size: 1.3rem;
+                -webkit-user-select: none;
+            }
+
+            #main .inner .result::-webkit-scrollbar {
+                width: 15px;
+            }
+            
+            #main .inner .result::-webkit-scrollbar-track {
+                -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.863); 
+                border-radius: 15px;
+            }
+            
+            #main .inner .result::-webkit-scrollbar-thumb {
+                border-radius: 15px;
+                background-color: rgba(44, 4, 66, 0.911);
+                -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.966); 
+            }
+
+            #main .inner .result::-webkit-scrollbar-corner {
+                display: none;
+            }
+
+            #main .footer {
+                height: 1.5rem;
+                background-color: rgba(0, 0, 0, 0.449);
+                color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #tooltip {
+                display: none;
+                position: absolute;
+                padding: 5px;
+                background-color: rgba(0, 0, 0, 0.707);
+                color: white;
+                border-radius: 10px;
+                border-style: solid;
+                border-color: black;
+                font-size: 1rem;
+            }
+
+            #setting {
+                position: absolute;
+                top: 0;
+                right: 0;
+                margin: 2px;
+                width: 2rem;
+                height: 2rem;
+                cursor: pointer;
+                background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' standalone='no'%3F%3E%3Csvg width='1024px' height='1024px' viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg' class='icon'%3E%3Cpath d='M924.8 625.7l-65.5-56c3.1-19 4.7-38.4 4.7-57.8s-1.6-38.8-4.7-57.8l65.5-56a32.03 32.03 0 0 0 9.3-35.2l-.9-2.6a443.74 443.74 0 0 0-79.7-137.9l-1.8-2.1a32.12 32.12 0 0 0-35.1-9.5l-81.3 28.9c-30-24.6-63.5-44-99.7-57.6l-15.7-85a32.05 32.05 0 0 0-25.8-25.7l-2.7-.5c-52.1-9.4-106.9-9.4-159 0l-2.7.5a32.05 32.05 0 0 0-25.8 25.7l-15.8 85.4a351.86 351.86 0 0 0-99 57.4l-81.9-29.1a32 32 0 0 0-35.1 9.5l-1.8 2.1a446.02 446.02 0 0 0-79.7 137.9l-.9 2.6c-4.5 12.5-.8 26.5 9.3 35.2l66.3 56.6c-3.1 18.8-4.6 38-4.6 57.1 0 19.2 1.5 38.4 4.6 57.1L99 625.5a32.03 32.03 0 0 0-9.3 35.2l.9 2.6c18.1 50.4 44.9 96.9 79.7 137.9l1.8 2.1a32.12 32.12 0 0 0 35.1 9.5l81.9-29.1c29.8 24.5 63.1 43.9 99 57.4l15.8 85.4a32.05 32.05 0 0 0 25.8 25.7l2.7.5a449.4 449.4 0 0 0 159 0l2.7-.5a32.05 32.05 0 0 0 25.8-25.7l15.7-85a350 350 0 0 0 99.7-57.6l81.3 28.9a32 32 0 0 0 35.1-9.5l1.8-2.1c34.8-41.1 61.6-87.5 79.7-137.9l.9-2.6c4.5-12.3.8-26.3-9.3-35zM788.3 465.9c2.5 15.1 3.8 30.6 3.8 46.1s-1.3 31-3.8 46.1l-6.6 40.1 74.7 63.9a370.03 370.03 0 0 1-42.6 73.6L721 702.8l-31.4 25.8c-23.9 19.6-50.5 35-79.3 45.8l-38.1 14.3-17.9 97a377.5 377.5 0 0 1-85 0l-17.9-97.2-37.8-14.5c-28.5-10.8-55-26.2-78.7-45.7l-31.4-25.9-93.4 33.2c-17-22.9-31.2-47.6-42.6-73.6l75.5-64.5-6.5-40c-2.4-14.9-3.7-30.3-3.7-45.5 0-15.3 1.2-30.6 3.7-45.5l6.5-40-75.5-64.5c11.3-26.1 25.6-50.7 42.6-73.6l93.4 33.2 31.4-25.9c23.7-19.5 50.2-34.9 78.7-45.7l37.9-14.3 17.9-97.2c28.1-3.2 56.8-3.2 85 0l17.9 97 38.1 14.3c28.7 10.8 55.4 26.2 79.3 45.8l31.4 25.8 92.8-32.9c17 22.9 31.2 47.6 42.6 73.6L781.8 426l6.5 39.9zM512 326c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm79.2 255.2A111.6 111.6 0 0 1 512 614c-29.9 0-58-11.7-79.2-32.8A111.6 111.6 0 0 1 400 502c0-29.9 11.7-58 32.8-79.2C454 401.6 482.1 390 512 390c29.9 0 58 11.6 79.2 32.8A111.6 111.6 0 0 1 624 502c0 29.9-11.7 58-32.8 79.2z'/%3E%3C/svg%3E%0A");
+                background-position: center;
+                background-size: cover;
+            }
+
+            #server-setting {
+                width: 100vw;
+                height: 100vh;
+                display: none;
+                position: absolute;
+                top:0;
+                left:0;
+                right: 0;
+                bottom:0;
+                background-color:rgba(0, 0, 0, 0.6);
+                z-index: 999;
+                justify-content: center;
+                align-items: center;
+                font-size: 1.2rem;
+                flex-direction: column;
+            }
+
+            #server-setting > div div {
+                margin: .5rem 0;
+            }
+
+            .btn {
+                padding: .5px 10px;
+                border-radius: 5px;
+                border-style: solid;
+                border-width: 1px;
+                border-color: black;
+                background-color: rgba(85, 85, 175, 0.589);
+                font-size: 1.5rem;
+                cursor: pointer;
+                -webkit-user-select: none;
+            }
+
+            .no-scroll-bar::-webkit-scrollbar {
+                display: none;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="root">
+            <div id="main">
+                <div class="title">
+                    <span class="la-title"> Backup Record Searcher </span>
+                </div>
+
+                <div class="inner">
+                    <div class="input-group">
+                        <input type="text" id="file-name">
+                        <span id="search-btn" class="btn"> Search! </span>
+                    </div>
+                </div>
+
+                <div class="inner no-scroll-bar" style="flex:1;padding:1.5rem 0;overflow: auto;">
+                    <div id="result" class="result"></div>
+                </div>
+                
+                <div class="footer"> Backup Record Searcher by @chw</div>
+            </div>
+            
+            <div id="bg">
+                <video autoplay loop muted>
+                    <source src="https://f002.backblazeb2.com/file/MyFileHost/ComicRecorderBG.mp4">
+                </video>
+            </div>
+
+            <div id="server-setting">
+                <div> 
+                    <div> Current Server: <span id="current-server"> Unknown </span></div>
+                    <div> Server Status: <span id="server-status"> Offline </span></div>
+                    <div>
+                        <span style="margin-right: 1rem;">Server Address: </span>
+                        <input id="input-server">
+                    </div>
+                    <div>
+                        <span style="margin-right: 1rem;">Server Port: </span>
+                        <input id="input-server-port">
+                    </div>
+                    <div id="save-server" class="btn" style="display:inline-block;"> Save </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="setting" title="Server Configure"></div>
+        <div id="tooltip"></div>
+
+        <script>
+            window.onload = function(){
+                var resultArea = document.getElementById('result');
+                var fileName = document.getElementById('file-name');
+                var searchBtn = document.getElementById('search-btn');
+                var tooltip = document.getElementById('tooltip');
+
+                var serverSetting = document.getElementById('server-setting');
+                var currentServer = document.getElementById('current-server');
+                var serverStatus = document.getElementById('server-status');
+                var inputServer = document.getElementById('input-server');
+                var inputServerPort = document.getElementById('input-server-port');
+                var currentServerTxt = localStorage.getItem('serverName');
+
+                serverSetting.isShow = false;
+                searchBtn.isSarching = false;
+
+                resultArea.addChildEvent = function(node, name, handler){
+                    if(typeof resultArea.childEvents == 'undefined'){
+                        resultArea.childEvents = [];
+                    }
+                    node.addEventListener(name, handler);
+                    resultArea.childEvents.push(function(){node.removeEventListener(name, handler)});
+                };
+
+                resultArea.removeAllChild = function(){
+                    if(typeof resultArea.childEvents != 'undefined' && Array.isArray(resultArea.childEvents) && resultArea.childEvents.length != 0){
+                        resultArea.childEvents.forEach(function(fn){fn();});
+                        resultArea.childEvents = [];
+                    }
+                    resultArea.querySelectorAll('.item').forEach(function(node){ node.remove();});
+                    resultArea.innerHTML = '';
+                }
+
+                searchBtn.addEventListener('click', function(){
+                    if(searchBtn.isSarching === true){
+                        return alert('Server is busy');
+                    }
+
+                    if(fileName.value.length == 0){
+                        return alert('Please Enter a filename');
+                    }
+
+                    var fileNameVal = fileName.value;
+
+                    searchBtn.isSarching = true;
+
+                    resultArea.removeAllChild();
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', 'http://' + currentServerTxt + '/search');
+                    xhr.onload = function(){
+                        if(xhr.status == 200){
+                            var data = JSON.parse(xhr.responseText);   
+                            data.message.forEach(function(mes){
+
+                                var item = document.createElement('div');
+                                Object.assign(item.style, {
+                                    display: 'flex',
+                                    justifyContent: 'space-between'
+                                });
+                                item.classList.add('item');
+
+
+                                item.innerHTML = [
+                                    '<div>' + mes.comic_name + '</div>',
+                                    '<div style="display: flex">' + 
+                                        [
+                                            mes.info_json ? '<div class="tag ongoing">ongoing</div>' : '',
+                                            '<div class="tag drive-name">' + mes.drive_name + '</div>'
+                                        ].join('')
+                                    + '</div>',
+                                ].join('');
+
+                                var modifyTime = new Date(mes.update_utc_isostr);
+                            
+
+                                resultArea.addChildEvent(item, 'mouseenter', function(evt){
+                                    tooltip.style.display = 'block';
+                                    tooltip.style.left = (evt.clientX + 5) + 'px';
+                                    tooltip.style.top = (evt.clientY + 5) + 'px';
+                                    tooltip.innerHTML = [
+                                        '<div>DriveName: ' + mes.drive_name + '</div>',
+                                        '<div>ModifyTime: ' + modifyTime.toLocaleString() + '</div>',
+                                        '<div>Folder: ' + mes.is_folder + '</div>',
+                                        '<div>Size: ' + (mes.size_in_bytes / 1024 / 1024).toFixed(2) + 'MB</div>',
+                                        mes.pic_count ? '<div>Picture Count: ' + mes.pic_count + '</div>' : '',
+                                    ].join('');
+
+                                    if(mes.info_json){
+                                        var newContentUpdateTime = new Date(mes.info_json.LastUpdate);
+                                        tooltip.innerHTML += [
+                                            '<div>LastUpdate: ' + mes.info_json.LastUpdate + '</div>',
+                                            '<div>CurrentCount: ' + mes.info_json.Count + '</div>',
+                                            '<div>NewestFile: ' + mes.info_json.Newest + '</div>',
+                                            '<div>Source: ' + mes.info_json.Source + '</div>',
+                                            '<div>Info: ' + mes.info_json.info + '</div>'
+                                        ].join('');
+                                    }
+                                });
+
+                                resultArea.addChildEvent(item, 'mousemove', function(evt){
+                                    tooltip.style.left = (evt.clientX + 5) + 'px';
+                                    tooltip.style.top = (evt.clientY + 5) + 'px';
+                                });
+
+                                resultArea.addChildEvent(item, 'mouseleave', function(evt){
+                                    tooltip.style.display = 'none';
+                                });
+                                
+                                resultArea.appendChild(item);
+                            });
+                        }
+                        else {
+                            alert('Server returned an except error');
+                            console.error(xhr.responseText);
+                        }
+                        fileName.focus();
+                        searchBtn.isSarching = false;
+                    };
+                    xhr.onerror = function(err){
+                        alert('XmlHttpRequest get an except error');
+                        console.error(err);
+                        fileName.focus();
+                        searchBtn.isSarching = false;
+                    };
+                    xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                    xhr.send(JSON.stringify({
+                        file_name: encodeURIComponent(fileNameVal)
+                    }));
+                });
+
+
+                fileName.focus();
+                fileName.addEventListener('keydown', function(evt){
+                    if(evt.key == 'Enter'){
+                        searchBtn.click();
+                    }
+                });
+
+                window.addEventListener('keydown', function(evt){
+                    if(evt.key == 'Escape' || evt.key == 'Esc'){
+                        if(serverSetting.isShow){
+                            serverSetting.isShow = false;
+                            serverSetting.style.display = 'none';
+                        }
+
+                        window.setTimeout(function(){
+                            fileName.value = '';
+                            resultArea.removeAllChild();
+                            fileName.focus();
+                            searchBtn.isSarching = false;
+                        }, 0);
+                    }
+                });
+
+                document.getElementById('setting').addEventListener('click', function(evt){
+                    if(!serverSetting.isShow){
+                        serverSetting.isShow = true;
+                        serverSetting.style.display = 'flex';
+                    }
+
+                    
+
+                    if(currentServer!== null){
+
+                        var serverTxtSplit = currentServerTxt.split(':');
+                        inputServer.value = serverTxtSplit[0];
+                        inputServerPort.value = typeof serverTxtSplit[1] != 'undefined' ? serverTxtSplit[1] : 80;
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.onload = function(){
+                            if(xhr.status == 200 && xhr.responseText == 'server_listening'){
+                                serverStatus.innerText = 'Online';
+                            }
+                            else {
+                                serverStatus.innerText = 'Offline';
+                            }
+                        };
+                        xhr.open('GET', 'http://' + currentServerTxt + '/check_server');
+                        xhr.send();
+
+                        currentServer.innerText = currentServerTxt;
+                    }
+                    else {
+                        currentServer.innerText = 'Unknown';
+                        serverStatus.innerText = 'Offline';
+                    }
+                });
+
+                document.getElementById('save-server').addEventListener('click', function(evt){
+                    if(serverSetting.isShow){
+                        serverSetting.isShow = false;
+                        serverSetting.style.display = 'none';
+                    }
+
+                    currentServerTxt = (inputServerPort.value.length!=0 && inputServerPort.value!='80') ? inputServer.value + ":" + inputServerPort.value : inputServer.value;
+
+                    localStorage.setItem('serverName', currentServerTxt);
+                });
+
+
+            };
+        </script>
+    </body>
+
+</html>
